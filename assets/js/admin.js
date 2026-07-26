@@ -313,7 +313,9 @@ async function loadOrders(){
   tbody.innerHTML=data.map(o=>`
     <tr>
       <td><strong style="font-size:13px">KGS-${esc(o.order_number||o.id.slice(0,8).toUpperCase())}</strong><br><span style="color:var(--muted);font-size:10.5px">${new Date(o.created_at).toLocaleDateString('en-IN')}</span></td>
-      <td>${esc(o.guest_name||o.shipping_name||'-')}<br><span style="color:var(--muted);font-size:11px">${esc(o.guest_phone||o.shipping_phone||'')}</span></td>
+      <td>${esc(o.guest_name||o.shipping_name||'-')}<br><span style="color:var(--muted);font-size:11px">${esc(o.guest_phone||o.shipping_phone||'')}</span>
+          ${(o.shipping_address) ? `<br><span style="color:var(--muted);font-size:10.5px;white-space:pre-wrap;display:block;margin-top:4px;line-height:1.4">${esc(o.shipping_address)}</span>` : ''}
+      </td>
       <td style="color:var(--muted);font-size:13px">${(o.order_items||[]).length} item${(o.order_items||[]).length===1?'':'s'}</td>
       <td style="font-weight:600;color:var(--gold)">₹${Number(o.total).toLocaleString('en-IN')}</td>
       <td style="font-size:12.5px">${(o.payment_method||'cod').toUpperCase()}</td>
