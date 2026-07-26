@@ -1630,7 +1630,11 @@ function getSB() {
 var _SB_IMG_PREFIX = SB_URL + '/storage/v1/object/public/product-images/';
 function cdnImg(url) {
   if (!url || typeof url !== 'string') return url;
-  if (url.startsWith(_SB_IMG_PREFIX)) return '/cdn-images/' + url.slice(_SB_IMG_PREFIX.length);
+  if (url.startsWith(_SB_IMG_PREFIX)) {
+    // Strip "https://" for wsrv.nl and apply optimization
+    var cleanUrl = url.replace('https://', '');
+    return 'https://wsrv.nl/?url=' + cleanUrl + '&output=webp&q=80';
+  }
   return url;
 }
 var _TAG_BADGE = {
@@ -2613,7 +2617,10 @@ function ProductCard(_ref1) {
     }
   }, p.off && /*#__PURE__*/React.createElement("span", {
     className: "prod-off"
-  }, p.off)), /*#__PURE__*/React.createElement("button", {
+  }, p.off), (!p.stock || p.stock <= 0) && /*#__PURE__*/React.createElement("span", {
+    className: "prod-off",
+    style: { background: '#242424', color: '#fff' }
+  }, "Sold Out")), /*#__PURE__*/React.createElement("button", {
     className: 'heart-btn' + (wishlisted ? ' active' : ''),
     onClick: function onClick(e) {
       e.stopPropagation(); e.currentTarget.blur();
@@ -2661,12 +2668,14 @@ function ProductCard(_ref1) {
     className: "was"
   }, fmtPrice(p.was))), /*#__PURE__*/React.createElement("button", {
     className: "prod-cta",
+    disabled: !p.stock || p.stock <= 0,
+    style: (!p.stock || p.stock <= 0) ? { opacity: 0.6, cursor: 'not-allowed', pointerEvents: 'none' } : {},
     onClick: function onClick() {
-      return onAdd(p);
+      if (p.stock > 0) return onAdd(p);
     }
   }, /*#__PURE__*/React.createElement("span", {
     className: "material-symbols-outlined"
-  }, "shopping_bag"), "Add to Cart"));
+  }, (!p.stock || p.stock <= 0) ? "block" : "shopping_bag"), (!p.stock || p.stock <= 0) ? "Sold Out" : "Add to Cart"));
 }
 
 // ====== BEST SELLERS ========================================================
@@ -4103,16 +4112,18 @@ function ProductDetail(_ref15) {
   style: { width: 48, height: 56, background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#7A6340', fontWeight: 300, lineHeight: 1 }
 }, "+")),
 /*#__PURE__*/React.createElement("button", {
-  style: { flex: 1, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: 'linear-gradient(135deg, #C9A96E 0%, #B89657 55%, #9A7A3E 100%)', color: '#fff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 700, fontFamily: "'Jost',sans-serif", letterSpacing: '.03em', cursor: 'pointer', boxShadow: '0 8px 28px -8px rgba(184,150,87,0.75)', transition: 'all 240ms cubic-bezier(0.25,1,0.5,1)' },
-  onClick: function onClick() { return _onAdd(p, qty); }
+  disabled: !p.stock || p.stock <= 0,
+  style: Object.assign({ flex: 1, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: 'linear-gradient(135deg, #C9A96E 0%, #B89657 55%, #9A7A3E 100%)', color: '#fff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 700, fontFamily: "'Jost',sans-serif", letterSpacing: '.03em', cursor: 'pointer', boxShadow: '0 8px 28px -8px rgba(184,150,87,0.75)', transition: 'all 240ms cubic-bezier(0.25,1,0.5,1)' }, (!p.stock || p.stock <= 0) ? { opacity: 0.6, cursor: 'not-allowed', filter: 'grayscale(1)' } : {}),
+  onClick: function onClick() { if (p.stock > 0) return _onAdd(p, qty); }
 },
 /*#__PURE__*/React.createElement("span", {
   className: "material-symbols-outlined",
   style: { fontSize: 18 }
-}, "shopping_bag"), "Add to Cart \xB7 ", fmtPrice(lineTotal))),
+}, (!p.stock || p.stock <= 0) ? "block" : "shopping_bag"), (!p.stock || p.stock <= 0) ? "Sold Out" : ("Add to Cart \xB7 " + fmtPrice(lineTotal)))),
 /*#__PURE__*/React.createElement("button", {
-  onClick: function onClick() { _onAdd(p, qty); window._kgsSetRoute('checkout'); },
-  style: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: '#14110C', color: '#EDE3D4', border: 'none', borderRadius: 14, fontSize: 13.5, fontWeight: 600, fontFamily: "'Jost',sans-serif", letterSpacing: '.10em', textTransform: 'uppercase', cursor: 'pointer', padding: '16px 24px', marginBottom: 12, boxShadow: '0 6px 24px -8px rgba(20,17,12,0.55)', transition: 'all 240ms cubic-bezier(0.25,1,0.5,1)' }
+  disabled: !p.stock || p.stock <= 0,
+  onClick: function onClick() { if (p.stock > 0) { _onAdd(p, qty); window._kgsSetRoute('checkout'); } },
+  style: Object.assign({ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: '#14110C', color: '#EDE3D4', border: 'none', borderRadius: 14, fontSize: 13.5, fontWeight: 600, fontFamily: "'Jost',sans-serif", letterSpacing: '.10em', textTransform: 'uppercase', cursor: 'pointer', padding: '16px 24px', marginBottom: 12, boxShadow: '0 6px 24px -8px rgba(20,17,12,0.55)', transition: 'all 240ms cubic-bezier(0.25,1,0.5,1)' }, (!p.stock || p.stock <= 0) ? { opacity: 0.6, cursor: 'not-allowed' } : {})
 },
 /*#__PURE__*/React.createElement("span", {
   className: "material-symbols-outlined",

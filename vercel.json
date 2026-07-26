@@ -1,6 +1,8 @@
 {
+  "redirects": [
+    { "source": "/cdn-images/:path*", "destination": "https://wsrv.nl/?url=rgpkomngygapwjhnbgaf.supabase.co/storage/v1/object/public/product-images/:path*&output=webp", "permanent": true }
+  ],
   "rewrites": [
-    { "source": "/cdn-images/:path*", "destination": "https://rgpkomngygapwjhnbgaf.supabase.co/storage/v1/object/public/product-images/:path*" },
     { "source": "/((?!api/|assets/|cdn-images/|kgsadmin|sitemap|robots|manifest|sw\\.js|favicon|.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
   ],
   "headers": [

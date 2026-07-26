@@ -36,7 +36,9 @@ const _SB_STORAGE_PREFIX = KGS_CONFIG.supabase.url + '/storage/v1/object/public/
 function cdnImg(url) {
   if (!url || typeof url !== 'string') return url;
   if (url.startsWith(_SB_STORAGE_PREFIX)) {
-    return '/cdn-images/' + url.slice(_SB_STORAGE_PREFIX.length);
+    // Strip "https://" for wsrv.nl and apply optimization
+    let cleanUrl = url.replace('https://', '');
+    return 'https://wsrv.nl/?url=' + cleanUrl + '&output=webp&q=80';
   }
   return url;
 }
