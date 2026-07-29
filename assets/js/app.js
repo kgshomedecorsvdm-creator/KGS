@@ -7053,7 +7053,12 @@ function App() {
                     }
                     updatedAddresses.sort(function(a, b) { return (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0); });
                     sb.auth.updateUser({ data: { addresses: updatedAddresses } }).then(function(res) {
-                      if (!res.error) console.log('[KGS] Address auto-saved');
+                      if (!res.error) {
+                        console.log('[KGS] Address auto-saved');
+                        if (res.data && res.data.user && typeof setCurrentUser === 'function') {
+                          setCurrentUser(res.data.user);
+                        }
+                      }
                     });
                   }
                 }
