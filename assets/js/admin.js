@@ -146,7 +146,7 @@ async function editProduct(id){
   });
   document.getElementById('product-modal').classList.add('active');
 }
-async function compressImage(file, maxWidth = 1000, quality = 0.8) {
+async function compressImage(file, maxWidth = 800, quality = 0.6) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -316,7 +316,7 @@ async function loadOrders(){
       <td>${esc(o.guest_name||o.shipping_name||'-')}<br><span style="color:var(--muted);font-size:11px">${esc(o.guest_phone||o.shipping_phone||'')}</span>
           ${(o.shipping_address) ? `<br><span style="color:var(--muted);font-size:10.5px;white-space:pre-wrap;display:block;margin-top:4px;line-height:1.4">${esc(o.shipping_address)}</span>` : ''}
       </td>
-      <td style="color:var(--muted);font-size:13px">${(o.order_items||[]).length} item${(o.order_items||[]).length===1?'':'s'}</td>
+      <td style="color:var(--text);font-size:13px;line-height:1.4">${(o.order_items||[]).map(i => `${i.quantity}x ${esc(i.product_name || 'Item')}`).join('<br>')}</td>
       <td style="font-weight:600;color:var(--gold)">₹${Number(o.total).toLocaleString('en-IN')}</td>
       <td style="font-size:12.5px">${(o.payment_method||'cod').toUpperCase()}</td>
       <td><span class="badge ${statusBadge(o.status)}">${o.status}</span></td>

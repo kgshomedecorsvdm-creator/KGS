@@ -4794,7 +4794,44 @@ function CheckoutPage(_ref17) {
     style: {
       marginBottom: 20
     }
-  }, /*#__PURE__*/React.createElement("h3", null, "Delivery details"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h3", null, "Delivery details"), 
+  (user && user.user_metadata && user.user_metadata.addresses && user.user_metadata.addresses.length > 0) && /*#__PURE__*/React.createElement("div", {
+    style: { display: 'flex', gap: '12px', overflowX: 'auto', marginBottom: '20px', paddingBottom: '4px', msOverflowStyle: 'none', scrollbarWidth: 'none' }
+  }, user.user_metadata.addresses.map(function(addr) {
+    var isSelected = form.address && form.address.includes(addr.line1);
+    return /*#__PURE__*/React.createElement("div", {
+      key: addr.id,
+      onClick: function() {
+        setForm({
+          name: addr.full_name || '',
+          phone: addr.phone || '',
+          address: addr.line1 + (addr.line2 ? ', ' + addr.line2 : ''),
+          city: addr.city || '',
+          state: addr.state || 'Tamil Nadu',
+          pincode: addr.pincode || ''
+        });
+        setErrors({});
+      },
+      style: {
+        minWidth: '160px',
+        padding: '12px 16px',
+        border: '1px solid ' + (isSelected ? '#B89657' : 'rgba(26,26,26,0.12)'),
+        background: isSelected ? 'rgba(184,150,87,0.04)' : '#fff',
+        borderRadius: '10px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        position: 'relative'
+      }
+    }, 
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: '13px', fontWeight: 600, marginBottom: '2px', color: isSelected ? '#1A1A1A' : '#5E5B59' } }, addr.label || 'Saved Address'),
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: '12px', color: '#9E9B98', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, addr.line1),
+      isSelected && /*#__PURE__*/React.createElement("span", {
+        className: "material-symbols-outlined",
+        style: { position: 'absolute', top: '12px', right: '12px', fontSize: '16px', color: '#B89657', fontVariationSettings: '"FILL" 1' }
+      }, "check_circle")
+    );
+  })),
+  /*#__PURE__*/React.createElement("div", {
     className: "form-field"
   }, /*#__PURE__*/React.createElement("label", null, "Full name"), /*#__PURE__*/React.createElement("input", {
     className: "form-input",
@@ -6989,6 +7026,38 @@ function App() {
             }).then(function(_ref2) {
               var ok2 = _ref2.ok, data = _ref2.data;
               if (ok2 && data && data.success === true && data.order_number != null) {
+                // Auto-save address
+                if (currentUser && currentUser.user_metadata) {
+                  var existingAddresses = currentUser.user_metadata.addresses || [];
+                  var isMatch = existingAddresses.some(function(a) {
+                    return a.line1 === formData.address && a.city === formData.city && a.pincode === formData.pincode;
+                  });
+                  if (!isMatch) {
+                    var newAddr = {
+                      id: Date.now().toString(),
+                      full_name: formData.name,
+                      phone: formData.phone,
+                      line1: formData.address,
+                      line2: '',
+                      city: formData.city,
+                      state: formData.state || 'Tamil Nadu',
+                      pincode: formData.pincode,
+                      label: existingAddresses.length === 0 ? 'Home' : 'Recent Address',
+                      is_default: existingAddresses.length === 0
+                    };
+                    var updatedAddresses = existingAddresses.concat([newAddr]);
+                    if (newAddr.is_default) {
+                      updatedAddresses = updatedAddresses.map(function(a) {
+                        return Object.assign({}, a, { is_default: a.id === newAddr.id });
+                      });
+                    }
+                    updatedAddresses.sort(function(a, b) { return (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0); });
+                    sb.auth.updateUser({ data: { addresses: updatedAddresses } }).then(function(res) {
+                      if (!res.error) console.log('[KGS] Address auto-saved');
+                    });
+                  }
+                }
+
                 setLastCart(cartSnapshot);
                 setLastOrderNumber('KGS-' + data.order_number);
                 setCart([]);

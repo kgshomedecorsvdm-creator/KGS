@@ -52,10 +52,18 @@ function buildOrderEmailTemplate(order, status) {
 '    <p style="font-size:14.5px;color:#5E5B59;line-height:1.65;margin:0;">Hi ' + esc(firstName) + ', ' + m.body + '</p>\n' +
 '  </div>\n' +
 '  <div style="background:#fff;border:1px solid #E8E2D9;border-radius:14px;padding:24px;margin-bottom:24px;">\n' +
-'    <div style="display:flex;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid #F0EDE8;margin-bottom:16px;">\n' +
-'      <div><div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9E9B98;margin-bottom:4px;">Order</div><div style="font-size:15px;font-weight:600;color:#1A1A1A;">' + orderNum + '</div></div>\n' +
-'      <div style="text-align:right;"><div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9E9B98;margin-bottom:4px;">Total</div><div style="font-size:15px;font-weight:600;color:#B89657;">' + total + '</div></div>\n' +
-'    </div>\n' +
+'    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">\n' +
+'      <tr>\n' +
+'        <td style="padding-bottom:16px;border-bottom:1px solid #F0EDE8;text-align:left;vertical-align:top;">\n' +
+'          <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9E9B98;margin-bottom:4px;">Order</div>\n' +
+'          <div style="font-size:15px;font-weight:600;color:#1A1A1A;">' + orderNum + '</div>\n' +
+'        </td>\n' +
+'        <td style="padding-bottom:16px;border-bottom:1px solid #F0EDE8;text-align:right;vertical-align:top;">\n' +
+'          <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9E9B98;margin-bottom:4px;">Total</div>\n' +
+'          <div style="font-size:15px;font-weight:600;color:#B89657;">' + total + '</div>\n' +
+'        </td>\n' +
+'      </tr>\n' +
+'    </table>\n' +
 '    ' + (itemsHtml ? '<table style="width:100%;border-collapse:collapse;">' + itemsHtml + '</table>' : '') + '\n' +
 '  </div>\n' +
 '  <div style="text-align:center;margin-bottom:32px;">\n' +
