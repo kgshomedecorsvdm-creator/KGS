@@ -4631,7 +4631,8 @@ function CheckoutPage(_ref17) {
       address: _defaultAddr ? (_defaultAddr.line1 + (_defaultAddr.line2 ? ', ' + _defaultAddr.line2 : '')) : '',
       city: (_defaultAddr && _defaultAddr.city) || '',
       state: (_defaultAddr && _defaultAddr.state) || 'Tamil Nadu',
-      pincode: (_defaultAddr && _defaultAddr.pincode) || ''
+      pincode: (_defaultAddr && _defaultAddr.pincode) || '',
+      saveAddress: true
     }),
     _React$useState28 = _slicedToArray(_React$useState27, 2),
     form = _React$useState28[0],
@@ -4927,7 +4928,19 @@ function CheckoutPage(_ref17) {
       fontSize: 11,
       color: '#C0392B'
     }
-  }, errors.pincode)))), /*#__PURE__*/React.createElement("div", {
+  }, errors.pincode)), /*#__PURE__*/React.createElement("div", {
+    className: "form-group",
+    style: { display: 'flex', alignItems: 'center', marginTop: '16px', gap: '8px' }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    id: "saveAddressCheck",
+    checked: form.saveAddress !== false,
+    onChange: function(e) { return update('saveAddress', e.target.checked); },
+    style: { accentColor: 'var(--gold)', width: '16px', height: '16px', cursor: 'pointer' }
+  }), /*#__PURE__*/React.createElement("label", {
+    htmlFor: "saveAddressCheck",
+    style: { margin: 0, cursor: 'pointer', fontSize: '14px', color: 'var(--text)' }
+  }, "Save this address for future orders")))), /*#__PURE__*/React.createElement("div", {
     className: "checkout-summary"
   }, /*#__PURE__*/React.createElement("h3", null, "Your order"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -7027,7 +7040,7 @@ function App() {
               var ok2 = _ref2.ok, data = _ref2.data;
               if (ok2 && data && data.success === true && data.order_number != null) {
                 // Auto-save address
-                if (currentUser && currentUser.user_metadata) {
+                if (currentUser && currentUser.user_metadata && formData.saveAddress !== false) {
                   var existingAddresses = currentUser.user_metadata.addresses || [];
                   var isMatch = existingAddresses.some(function(a) {
                     return a.line1 === formData.address && a.city === formData.city && a.pincode === formData.pincode;
