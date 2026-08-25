@@ -28,17 +28,20 @@ const KGS_CONFIG = {
 };
 
 // ─── CDN Image Proxy ──────────────────────────────────────
-// Rewrites Supabase Storage URLs to go through Vercel's CDN
-// proxy (/cdn-images/…). This saves Supabase egress because
-// Vercel caches the images on its global edge network.
-// Non-Supabase URLs (or falsy values) are returned as-is.
+// Rewrites Supabase Storage URLs through wsrv.nl CDN proxy.
+// wsrv.nl fetches from Supabase ONCE, caches the resized
+// WebP globally, and serves it to every visitor — massively
+// cutting Supabase egress usage.
+//
+// w=800  → max 800px wide  (enough for any product card/modal)
+// q=75   → 75% WebP quality (visually lossless, much smaller)
+// output=webp → convert PNG/JPG → WebP on-the-fly
 const _SB_STORAGE_PREFIX = KGS_CONFIG.supabase.url + '/storage/v1/object/public/product-images/';
 function cdnImg(url) {
   if (!url || typeof url !== 'string') return url;
   if (url.startsWith(_SB_STORAGE_PREFIX)) {
-    // Strip "https://" for wsrv.nl and apply optimization
     let cleanUrl = url.replace('https://', '');
-    return 'https://wsrv.nl/?url=' + cleanUrl + '&output=webp&q=80';
+    return 'https://wsrv.nl/?url=' + cleanUrl + '&output=webp&q=75&w=800';
   }
   return url;
 }
