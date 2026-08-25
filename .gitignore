@@ -18,6 +18,11 @@ supabase_admin.sql
 supabase_orders.sql
 supabase_tracking.sql
 
+# Scripts with embedded service-role keys — local use only
+scripts/compress-supabase-images.js
+scripts/optimize-images.js
+
+
 # config.js is safe to commit — no secrets in it
 # Resend key is stored in admin localStorage via Settings page
 
