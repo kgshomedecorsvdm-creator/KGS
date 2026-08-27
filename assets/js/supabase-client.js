@@ -10,6 +10,13 @@ function getSupabase() {
   return _supabase;
 }
 
+function handleError(error) {
+  if (error && error.message && (error.message.includes('exceed_egress_quota') || error.message.includes('restricted'))) {
+    return new Error('Account services are temporarily unavailable. Please try again later.');
+  }
+  return error;
+}
+
 async function signUp(email, password, fullName) {
   const sb = getSupabase();
   const { data, error } = await sb.auth.signUp({
@@ -17,14 +24,14 @@ async function signUp(email, password, fullName) {
     password,
     options: { data: { full_name: fullName } }
   });
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
 async function signIn(email, password) {
   const sb = getSupabase();
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
@@ -39,19 +46,19 @@ async function resetPasswordForEmail(email) {
   const { error } = await sb.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + '/account'
   });
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function updateAuthPassword(newPassword) {
   const sb = getSupabase();
   const { error } = await sb.auth.updateUser({ password: newPassword });
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function resendConfirmationEmail(email) {
   const sb = getSupabase();
   const { error } = await sb.auth.resend({ type: 'signup', email });
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function getWishlist() {
@@ -59,7 +66,7 @@ async function getWishlist() {
   const user = await getUser();
   if (!user) return [];
   const { data, error } = await sb.from('wishlist_items').select('product_id').eq('customer_id', user.id);
-  if (error) throw error;
+  if (error) throw handleError(error);
   return (data || []).map(r => r.product_id);
 }
 
@@ -68,7 +75,7 @@ async function addToWishlist(productId) {
   const user = await getUser();
   if (!user) throw new Error('Not authenticated');
   const { error } = await sb.from('wishlist_items').upsert({ customer_id: user.id, product_id: productId }, { onConflict: 'customer_id,product_id' });
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function removeFromWishlist(productId) {
@@ -76,7 +83,7 @@ async function removeFromWishlist(productId) {
   const user = await getUser();
   if (!user) return;
   const { error } = await sb.from('wishlist_items').delete().eq('customer_id', user.id).eq('product_id', productId);
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function getUser() {
@@ -109,21 +116,21 @@ async function fetchProducts({ category, search, sort, limit = 50, offset = 0 } 
   query = query.range(offset, offset + limit - 1);
 
   const { data, error, count } = await query;
-  if (error) throw error;
+  if (error) throw handleError(error);
   return { products: data || [], total: count };
 }
 
 async function fetchProductByHandle(handle) {
   const sb = getSupabase();
   const { data, error } = await sb.from('products').select('*').eq('handle', handle).single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
 async function fetchProductById(id) {
   const sb = getSupabase();
   const { data, error } = await sb.from('products').select('*').eq('id', id).single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
@@ -133,7 +140,7 @@ async function fetchFeaturedProducts(tag = 'featured', limit = 8) {
     .select('*')
     .contains('tags', [tag])
     .limit(limit);
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data || [];
 }
 
@@ -143,7 +150,7 @@ async function fetchNewArrivals(limit = 8) {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(limit);
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data || [];
 }
 
@@ -153,35 +160,35 @@ async function searchProducts(query) {
     .select('*')
     .or(`name.ilike.%${query}%,category.ilike.%${query}%,tags.cs.{"${query}"}`)
     .limit(20);
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data || [];
 }
 
 async function adminInsertProduct(product) {
   const sb = getSupabase();
   const { data, error } = await sb.from('products').insert(product).select().single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
 async function adminUpdateProduct(id, updates) {
   const sb = getSupabase();
   const { data, error } = await sb.from('products').update(updates).eq('id', id).select().single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
 async function adminDeleteProduct(id) {
   const sb = getSupabase();
   const { error } = await sb.from('products').update({ is_active: false }).eq('id', id);
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function adminUploadImage(file, folder = 'products') {
   const sb = getSupabase();
   const fileName = `${folder}/${Date.now()}_${file.name}`;
   const { data, error } = await sb.storage.from('product-images').upload(fileName, file);
-  if (error) throw error;
+  if (error) throw handleError(error);
   const { data: urlData } = sb.storage.from('product-images').getPublicUrl(fileName);
   return urlData.publicUrl;
 }
@@ -200,14 +207,14 @@ async function adminFetchOrders({ status, limit = 50, offset = 0 } = {}) {
   if (status && status !== 'all') query = query.eq('status', status);
   query = query.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
   const { data, error, count } = await query;
-  if (error) throw error;
+  if (error) throw handleError(error);
   return { orders: data || [], total: count };
 }
 
 async function adminUpdateOrderStatus(orderId, status) {
   const sb = getSupabase();
   const { error } = await sb.from('orders').update({ status }).eq('id', orderId);
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function getProfile() {
@@ -223,14 +230,14 @@ async function updateProfile(updates) {
   const user = await getUser();
   if (!user) throw new Error('Not authenticated');
   const { data, error } = await sb.from('customers').update(updates).eq('id', user.id).select().single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
 async function getAddresses() {
   const sb = getSupabase();
   const { data, error } = await sb.from('addresses').select('*').order('is_default', { ascending: false });
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data || [];
 }
 
@@ -239,21 +246,21 @@ async function addAddress(address) {
   const user = await getUser();
   address.customer_id = user.id;
   const { data, error } = await sb.from('addresses').insert(address).select().single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
 async function updateAddress(id, updates) {
   const sb = getSupabase();
   const { data, error } = await sb.from('addresses').update(updates).eq('id', id).select().single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
 async function deleteAddress(id) {
   const sb = getSupabase();
   const { error } = await sb.from('addresses').delete().eq('id', id);
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function setDefaultAddress(id) {
@@ -262,7 +269,7 @@ async function setDefaultAddress(id) {
   if (!user) throw new Error('Not authenticated');
   await sb.from('addresses').update({ is_default: false }).eq('customer_id', user.id);
   const { error } = await sb.from('addresses').update({ is_default: true }).eq('id', id);
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 
@@ -272,7 +279,7 @@ async function getMyOrders() {
   const { data, error } = await sb.from('orders')
     .select('*, order_items(*)')
     .order('created_at', { ascending: false });
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data || [];
 }
 
@@ -282,7 +289,7 @@ async function getOrderById(orderId) {
     .select('*, order_items(*)')
     .eq('id', orderId)
     .single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
@@ -321,7 +328,7 @@ async function getStoreReviews() {
     .select('*')
     .eq('is_approved', true)
     .order('created_at', { ascending: false });
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data || [];
 }
 
@@ -334,7 +341,7 @@ async function submitStoreReview(reviewData) {
   }
   
   const { data, error } = await sb.from('store_reviews').insert(reviewData).select().single();
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data;
 }
 
@@ -349,20 +356,20 @@ async function adminGetStoreReviews({ status = 'pending' } = {}) {
   }
   
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) throw handleError(error);
   return data || [];
 }
 
 async function adminApproveStoreReview(reviewId) {
   const sb = getSupabase();
   const { error } = await sb.from('store_reviews').update({ is_approved: true }).eq('id', reviewId);
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 async function adminDeleteStoreReview(reviewId) {
   const sb = getSupabase();
   const { error } = await sb.from('store_reviews').delete().eq('id', reviewId);
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
 
 
@@ -370,5 +377,5 @@ async function adminDeleteStoreReview(reviewId) {
 async function subscribeNewsletter(email) {
   const sb = getSupabase();
   const { error } = await sb.from('newsletter_subscribers').insert({ email });
-  if (error) throw error;
+  if (error) throw handleError(error);
 }
