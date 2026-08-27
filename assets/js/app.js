@@ -157,10 +157,10 @@ function ResetPasswordPage(_ref_rp) {
     setLoading(true); setError('');
     var sb = getSB();
     sb.auth.updateUser({ password: newPwd }).then(function(res) {
-      if (res.error) { setError(res.error.message || 'Failed to update password.'); setLoading(false); return; }
+      if (res.error) { setError(_overrideErrorMessage(res.error.message || 'Failed to update password.')); setLoading(false); return; }
       setDone(true); setLoading(false);
       setTimeout(function() { onDone(); }, 2200);
-    })['catch'](function(e) { setError(e.message || 'Something went wrong.'); setLoading(false); });
+    })['catch'](function(e) { setError(_overrideErrorMessage(e && e.message ? e.message : 'Something went wrong.')); setLoading(false); });
   };
 
   var inp = { width: '100%', padding: '14px', border: '1px solid rgba(26,26,26,0.15)', borderRadius: '8px', fontSize: '14px', fontFamily: '"Jost", sans-serif', boxSizing: 'border-box' };
@@ -225,6 +225,14 @@ function ConfirmEmailPage(_ref_ce) {
   );
 }
 
+function _overrideErrorMessage(msg) {
+  if (typeof msg !== 'string') return 'Something went wrong. Please try again.';
+  if (msg.toLowerCase().indexOf('exceed_egress_quota') !== -1 || msg.toLowerCase().indexOf('restricted') !== -1) {
+    return 'Account services are temporarily unavailable. Please try again later.';
+  }
+  return msg;
+}
+
 function ForgotPasswordPage(_ref_fp) {
   var onBack = _ref_fp.onBack;
   var _state_e = React.useState(''), email = _state_e[0], setEmail = _state_e[1];
@@ -240,7 +248,8 @@ function ForgotPasswordPage(_ref_fp) {
         setSuccess(true);
         setLoading(false);
       })["catch"](function(e) {
-        setError(e.message || 'Something went wrong. Please try again.');
+        var cleanMsg = _overrideErrorMessage(e && e.message ? e.message : String(e));
+        setError(cleanMsg);
         setLoading(false);
       });
     } else {
@@ -293,8 +302,8 @@ function AccountLoginPage(_ref) {
   var handleSubmit = function() {
     if (!email || !password) { setError('Please enter your email and password.'); return; }
     setLoading(true); setError('');
-    onLogin(email, password).catch(function(e) {
-      setError(e.message || 'Sign in failed. Check your credentials and try again.');
+    onLogin(email, password)["catch"](function(e) {
+      setError(_overrideErrorMessage(e && e.message ? e.message : 'Sign in failed. Check your credentials and try again.'));
       setLoading(false);
     });
   };
@@ -348,8 +357,8 @@ function AccountRegisterPage(_ref2) {
     if (!fullName || !email || !password) { setError('Please fill in all fields.'); return; }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     setLoading(true); setError('');
-    onRegister(email, password, fullName).catch(function(e) {
-      setError(e.message || 'Registration failed. Please try again.');
+    onRegister(email, password, fullName)["catch"](function(e) {
+      setError(_overrideErrorMessage(e && e.message ? e.message : 'Registration failed. Please try again.'));
       setLoading(false);
     });
   };
@@ -412,7 +421,7 @@ function AccountSettingsTab(_ref_st) {
       });
     })["catch"](function(e) {
       setSettingsSaving(false);
-      setSettingsErr(e.message || 'Update failed.');
+      setSettingsErr(_overrideErrorMessage(e && e.message ? e.message : 'Update failed.'));
     });
   };
 
@@ -682,7 +691,7 @@ function ChangePasswordTab(_ref_cp) {
       if (res.error) { setErr(res.error.message || 'Update failed.'); return; }
       setNewPwd(''); setConfPwd('');
       onToast('Password changed successfully', 'lock', '#B89657');
-    })["catch"](function(e) { setSaving(false); setErr(e.message || 'Update failed.'); });
+    })["catch"](function(e) { setSaving(false); setErr(_overrideErrorMessage(e && e.message ? e.message : 'Update failed.')); });
   };
 
   return /*#__PURE__*/React.createElement("div", null,
