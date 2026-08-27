@@ -1,17 +1,13 @@
 /* ═══════════════════════════════════════════════════════════
    KGS Admin Panel — JavaScript
 ═══════════════════════════════════════════════════════════ */
-const SB_URL='https://rgpkomngygapwjhnbgaf.supabase.co';
-const SB_KEY='sb_publishable_UkDE7zfukrWeuSW2pZYjTQ_YpBFcs9P';
+const SB_URL = KGS_CONFIG.supabase.url;
+const SB_KEY = KGS_CONFIG.supabase.anonKey;
 let sb;
 function initSB(){sb=supabase.createClient(SB_URL,SB_KEY);return sb;}
 
-// ─── SECURITY: HTML escaping for DB/user-supplied strings ──
-// Prevents stored-XSS when interpolating untrusted text into innerHTML.
-// Escapes quotes too, so it is safe inside attribute values.
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-// ─── AUTH ─────────────────────────────────────────────────
 async function adminLogin(email,password){
   const{data,error}=await sb.auth.signInWithPassword({email,password});
   if(error)throw error;
@@ -244,29 +240,23 @@ async function deleteProduct(id){
   const name=p?p.name:'this product';
   if(!confirm('Delete "'+name+'"? This will remove it from your store.'))return;
   try{
-    console.log('[KGS Admin] Deleting product:',id,name);
-    // Immediately remove the row visually for instant feedback
-    const rows=document.querySelectorAll('#products-tbody tr');
+    const rows=document.querySelectorAll('#products-tbody tr[data-product-id]');
     rows.forEach(row=>{
-      if(row.innerHTML.includes(id)){
+      if(row.dataset.productId===id){
         row.style.transition='opacity 0.3s, transform 0.3s';
         row.style.opacity='0';
         row.style.transform='translateX(20px)';
       }
     });
     const{data,error}=await sb.from('products').update({is_active:false}).eq('id',id).select();
-    console.log('[KGS Admin] Delete result:',{data,error});
     if(error)throw error;
     if(!data||data.length===0){
-      // Update returned no rows — likely RLS blocked it
-      console.error('[KGS Admin] Update returned 0 rows — trying direct delete');
       const{error:delErr}=await sb.from('products').delete().eq('id',id);
       if(delErr)throw delErr;
     }
     toast('Product deleted successfully');
     setTimeout(()=>loadProducts(),350);
   }catch(err){
-    console.error('[KGS Admin] Delete failed:',err);
     toast('Delete failed: '+err.message);
     loadProducts();
   }

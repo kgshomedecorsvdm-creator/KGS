@@ -1,6 +1,4 @@
-// Creates a Razorpay order. The amount is computed SERVER-SIDE from the real
-// product prices in Supabase — the client never sends an amount, so it cannot
-// be tampered with to undercharge.
+var { rateLimit } = require('./_rate-limit');
 
 var SUPABASE_URL = process.env.SUPABASE_URL || 'https://rgpkomngygapwjhnbgaf.supabase.co';
 var SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_UkDE7zfukrWeuSW2pZYjTQ_YpBFcs9P';
@@ -50,6 +48,8 @@ async function computeTotals(items, state) {
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  var ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+  if (rateLimit(ip, 10, 60000)) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
   try {
     var body = req.body || {};
     var items = body.items;

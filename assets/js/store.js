@@ -1,6 +1,8 @@
 const SB_STORE_URL = KGS_CONFIG.supabase.url + '/rest/v1';
 const SB_STORE_KEY = KGS_CONFIG.supabase.anonKey;
 
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
 async function sbFetch(endpoint) {
   try {
     const r = await fetch(`${SB_STORE_URL}${endpoint}`, {
@@ -51,7 +53,7 @@ async function fetchCollectionProducts(category) {
   const limit = 1000;
   let baseQuery = '/products?is_active=eq.true&select=*&order=sort_order.asc';
   if (category && category.toLowerCase() !== 'all') {
-    baseQuery += `&category=eq.${category}`;
+    baseQuery += '&category=eq.' + encodeURIComponent(category);
   }
 
   while (true) {
@@ -251,7 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-let cachedProducts = null;
 let kgsFuse = null;
 
 async function doSearch(q) {
@@ -266,11 +267,11 @@ async function doSearch(q) {
   }
   if (hint) hint.style.display = 'none';
   
-  if (!cachedProducts) {
+  if (!_cachedAllProducts) {
     res.innerHTML = '<p style="color:rgba(25,25,25,.6);font-size:13px;padding:12px 16px;">Loading products...</p>';
-    cachedProducts = await initStore();
-    if (window.Fuse) {
-      kgsFuse = new window.Fuse(cachedProducts, { keys: ['name', 'category'], threshold: 0.3 });
+    await initStore();
+    if (window.Fuse && _cachedAllProducts) {
+      kgsFuse = new window.Fuse(_cachedAllProducts, { keys: ['name', 'category'], threshold: 0.3 });
     }
   }
   
@@ -284,14 +285,14 @@ async function doSearch(q) {
     res.innerHTML = '<p style="color:rgba(25,25,25,.6);font-size:13px;padding:12px 16px;">No results. <a href="product-listing.html" class="text-warm underline">Browse all products &rarr;</a></p>';
   } else {
     res.innerHTML = matches.map(p => `
-      <a href="product-detail.html?handle=${p.handle}" class="flex items-center justify-between p-3 border-b border-border hover:bg-tint transition-colors text-decoration-none">
+      <a href="product-detail.html?handle=${encodeURIComponent(p.handle)}" class="flex items-center justify-between p-3 border-b border-border hover:bg-tint transition-colors text-decoration-none">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 bg-tint border border-border shrink-0">
-             <img src="${p.image}" class="w-full h-full object-cover">
+             <img src="${esc(p.image)}" alt="${esc(p.name)}" class="w-full h-full object-cover">
           </div>
           <div>
-            <p class="text-ink text-[14px] font-medium">${p.name}</p>
-            <p class="text-muted text-[10px] tracking-[.14em] uppercase mt-0.5">${p.category || 'Product'}</p>
+            <p class="text-ink text-[14px] font-medium">${esc(p.name)}</p>
+            <p class="text-muted text-[10px] tracking-[.14em] uppercase mt-0.5">${esc(p.category || 'Product')}</p>
           </div>
         </div>
         <p class="text-warm text-[13px] font-semibold">₹${p.price.toLocaleString('en-IN')}</p>
@@ -338,6 +339,17 @@ const store = {
     return getLocalCart();
   },
   getProductById(id) {
+    if (_cachedAllProducts) {
+      const catalogItem = _cachedAllProducts.find(p => p.id === id);
+      if (catalogItem) return {
+        id: catalogItem.id,
+        name: catalogItem.name,
+        category: catalogItem.category || '',
+        image_url: catalogItem.image || 'assets/images/placeholder.webp',
+        price: catalogItem.price,
+        original_price: catalogItem.compare_at_price || null,
+      };
+    }
     const cart = getLocalCart();
     const item = cart.find(i => i.id === id);
     if (!item) return null;

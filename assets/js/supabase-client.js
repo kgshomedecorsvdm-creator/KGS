@@ -37,7 +37,7 @@ async function signOut() {
 async function resetPasswordForEmail(email) {
   const sb = getSupabase();
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/update-password.html'
+    redirectTo: window.location.origin + '/account'
   });
   if (error) throw error;
 }

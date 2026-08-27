@@ -1,9 +1,3 @@
-/* ═══════════════════════════════════════════════════════════
-   KGS Home Décors — Product Catalog Page
-   Loads products from Supabase via store.js, renders grid,
-   handles filters, cart, and wishlist.
-═══════════════════════════════════════════════════════════ */
-
 (function () {
   'use strict';
 
@@ -30,7 +24,7 @@
   function badgeHtml(p) {
     if (p.badge) {
       const cls = p.badge === 'New' ? 'prod-badge--ink' : 'prod-badge--gold';
-      return `<span class="prod-badge ${cls}">${p.badge}</span>`;
+      return '<span class="prod-badge ' + cls + '">' + esc(p.badge) + '</span>';
     }
     const d = pct(p.compare_at_price, p.price);
     if (d >= 10) return `<span class="prod-badge prod-badge--warm">${d}% Off</span>`;
@@ -52,24 +46,24 @@
     const fillSet = wishlisted ? `style="font-variation-settings:'FILL' 1,'wght' 300"` : '';
 
     return `
-      <div class="prod-card" data-category="${(p.category || '').toLowerCase()}">
+      <div class="prod-card" data-category="${esc((p.category || '').toLowerCase())}">
         <div class="prod-img">
           ${badgeHtml(p)}
-          <button class="heart-btn ${wishlisted}" data-product-id="${p.id}" aria-label="Add to wishlist">
+          <button class="heart-btn ${wishlisted}" data-product-id="${esc(p.id)}" aria-label="Add to wishlist">
             <span class="material-symbols-outlined" ${fillSet}>favorite</span>
           </button>
-          <a href="${href}" class="prod-img-link" aria-label="${p.name}">
-            <img src="${p.image || 'assets/images/placeholder.svg'}"
-                 alt="${p.name}" loading="lazy"
+          <a href="${href}" class="prod-img-link" aria-label="${esc(p.name)}">
+            <img src="${esc(p.image || 'assets/images/placeholder.svg')}"
+                 alt="${esc(p.name)}" loading="lazy"
                  onerror="this.src='assets/images/placeholder.svg'">
           </a>
-          <div class="prod-quick" data-id="${p.id}" role="button" tabindex="0">
+          <button class="prod-quick" data-id="${esc(p.id)}" aria-label="Quick view ${esc(p.name)}">
             <span class="material-symbols-outlined">visibility</span> Quick View
-          </div>
+          </button>
         </div>
         <a href="${href}" class="prod-body" style="text-decoration:none">
-          <div class="prod-cat">${p.category || ''}</div>
-          <div class="prod-name">${p.name}</div>
+          <div class="prod-cat">${esc(p.category || '')}</div>
+          <div class="prod-name">${esc(p.name)}</div>
           ${ratingHtml(p)}
         </a>
         <div class="prod-price">
@@ -79,10 +73,10 @@
                <span class="off">${pct(p.compare_at_price, p.price)}% off</span>`
             : ''}
         </div>
-        <button class="prod-cta" data-product-id="${p.id}">
+        <button class="prod-cta" data-product-id="${esc(p.id)}">
           <span class="material-symbols-outlined">shopping_bag</span> Add to Cart
         </button>
-      </div>`;
+      </div>`;;
   }
 
   // ── Render ────────────────────────────────────────────────

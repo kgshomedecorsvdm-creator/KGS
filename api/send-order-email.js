@@ -1,7 +1,4 @@
-// Sends an order-status notification email via Resend, SERVER-SIDE.
-// The Resend key lives only in a Vercel env var (never in the browser), and the
-// caller is verified to be an admin before any email is sent — so this endpoint
-// cannot be abused to spam from the store's verified domain.
+var { rateLimit } = require('./_rate-limit');
 
 var SUPABASE_URL = process.env.SUPABASE_URL || 'https://rgpkomngygapwjhnbgaf.supabase.co';
 var SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_UkDE7zfukrWeuSW2pZYjTQ_YpBFcs9P';
@@ -80,6 +77,8 @@ function buildOrderEmailTemplate(order, status) {
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  var ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+  if (rateLimit(ip, 5, 60000)) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
   try {
     var body = req.body || {};
     var orderId = body.orderId;
@@ -162,7 +161,7 @@ module.exports = async function handler(req, res) {
         html: tmpl.html
       })
     });
-    if (sendResp.status === 200) return res.json({ success: true });
+    if (sendResp.ok) return res.json({ success: true });
     var sendErr = await sendResp.text();
     console.error('[KGS] Resend send error:', sendResp.status, sendErr);
     return res.status(502).json({ error: 'Email send failed' });

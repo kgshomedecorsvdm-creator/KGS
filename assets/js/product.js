@@ -1,9 +1,3 @@
-/* ═══════════════════════════════════════════════════════════
-   KGS Home Décors — Product Detail Page
-   Reads ?handle= URL param, fetches from Supabase via store.js,
-   populates PDP, handles qty, cart, sticky bar, WA link.
-═══════════════════════════════════════════════════════════ */
-
 (function () {
   'use strict';
 
@@ -44,6 +38,7 @@
 
   let product = null;
   let qty = 1;
+  let maxQty = 10;
 
   // ── Populate PDP ──────────────────────────────────────────
   function populate(p) {
@@ -134,8 +129,8 @@
           border:2px solid ${i === 0 ? '#1A1A1A' : 'transparent'};
           cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px;
           transition:border-color 200ms ease;"
-          data-img="${url}" data-idx="${i}">
-          <img src="${url}" alt="" style="max-width:100%;max-height:100%;object-fit:contain;"
+          data-img="${esc(url)}" data-idx="${i}">
+          <img src="${esc(url)}" alt="${esc(p.title || p.name)}" style="max-width:100%;max-height:100%;object-fit:contain;"
                onerror="this.parentElement.style.display='none'">
         </div>`).join('');
 
@@ -171,8 +166,21 @@
   // ── Qty controls ─────────────────────────────────────────
   function updateCartBtn() {
     if (!btnAddCart || !product) return;
+    const variant = product.variants?.edges?.[0]?.node;
+    const inStock = variant ? variant.availableForSale !== false : true;
+    maxQty = (variant && variant.quantityAvailable > 0) ? variant.quantityAvailable : 10;
     const price = parseFloat(product.priceRange?.minVariantPrice?.amount || product.price || 0);
-    btnAddCart.innerHTML = `<span class="material-symbols-outlined">shopping_bag</span> Add to Cart · ${fmt(price * qty)}`;
+    if (!inStock) {
+      btnAddCart.innerHTML = '<span class="material-symbols-outlined">block</span> Out of Stock';
+      btnAddCart.disabled = true;
+      btnAddCart.style.opacity = '0.5';
+    } else {
+      btnAddCart.innerHTML = '<span class="material-symbols-outlined">shopping_bag</span> Add to Cart \u00b7 ' + fmt(price * qty);
+      btnAddCart.disabled = false;
+      btnAddCart.style.opacity = '1';
+    }
+    if (btnQtyPlus) btnQtyPlus.disabled = qty >= maxQty;
+    if (btnQtyMinus) btnQtyMinus.disabled = qty <= 1;
   }
 
   if (btnQtyMinus) {
@@ -182,9 +190,11 @@
   }
   if (btnQtyPlus) {
     btnQtyPlus.addEventListener('click', () => {
-      qty++;
-      if (elQtyValue) elQtyValue.textContent = qty;
-      updateCartBtn();
+      if (qty < maxQty) {
+        qty++;
+        if (elQtyValue) elQtyValue.textContent = qty;
+        updateCartBtn();
+      }
     });
   }
 
