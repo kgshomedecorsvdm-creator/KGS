@@ -1,9 +1,3 @@
-/* ═══════════════════════════════════════════════════════════
-   KGS Home Décors — Supabase Store Integration
-   Replaces Shopify Storefront API with Supabase
-═══════════════════════════════════════════════════════════ */
-
-// Credentials sourced from config.js (KGS_CONFIG) — single source of truth
 const SB_STORE_URL = KGS_CONFIG.supabase.url + '/rest/v1';
 const SB_STORE_KEY = KGS_CONFIG.supabase.anonKey;
 
@@ -17,7 +11,7 @@ async function sbFetch(endpoint) {
   } catch (e) { console.error('Store fetch failed:', e); return []; }
 }
 
-/* ─── PRODUCT CATALOG ───────────────────────────────────── */
+
 
 let _cachedAllProducts = null;
 
@@ -98,7 +92,7 @@ async function fetchProductByHandle(handle) {
   };
 }
 
-/* ─── LOCAL CART (localStorage, syncs to Supabase later) ── */
+
 
 function getLocalCart() {
   try { return JSON.parse(localStorage.getItem('kgs_cart')) || []; }
@@ -177,7 +171,7 @@ async function updateCartBadge() {
   });
 }
 
-/* ─── WISHLIST (localStorage) ───────────────────────────── */
+
 function getWishlist() {
   try { return JSON.parse(localStorage.getItem('kgs_wishlist')) || []; }
   catch (e) { return []; }
@@ -220,10 +214,7 @@ function updateHeartIcons() {
   });
 }
 
-/* ─── CATEGORY → IMAGE FOLDER MAP ──────────────────────── */
-// The DB uses 7 broad category slugs, but products live in 13 specific
-// image folders in Supabase Storage. This map lets us filter precisely
-// by folder without requiring a DB migration.
+
 const KGS_FOLDER_MAP = {
   'statues':            'statues',
   'wall-frames':        'wall-frames',
@@ -250,7 +241,7 @@ function filterProductsBySlug(products, slug) {
   return products.filter(p => (p.category || '') === slug);
 }
 
-/* ─── UTILS ─────────────────────────────────────────────── */
+
 const formatINR = val => '₹' + parseInt(val, 10).toLocaleString('en-IN');
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -259,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof updateHeartIcons === 'function') updateHeartIcons();
 });
 
-/* ─── GLOBAL SEARCH ─────────────────────────────────────── */
+
 let cachedProducts = null;
 let kgsFuse = null;
 
@@ -335,15 +326,13 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ─── CART CLEAR ────────────────────────────────────────── */
+
 function clearCart() {
   saveLocalCart([]);
   updateCartBadge();
 }
 
-/* ─── STORE COMPATIBILITY OBJECT ───────────────────────── */
-// cart-checkout.js uses store.getCart(), store.removeFromCart(), etc.
-// This shim bridges the flat function API to an object API.
+
 const store = {
   getCart() {
     return getLocalCart();

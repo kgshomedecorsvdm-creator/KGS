@@ -1,9 +1,3 @@
-/* ═══════════════════════════════════════════════════════════
-   KGS Home Décors — Supabase Client
-   Handles auth, products, cart, wishlist, orders
-═══════════════════════════════════════════════════════════ */
-
-// Credentials sourced from config.js (KGS_CONFIG) — single source of truth
 const SUPABASE_URL      = KGS_CONFIG.supabase.url;
 const SUPABASE_ANON_KEY = KGS_CONFIG.supabase.anonKey;
 
@@ -15,8 +9,6 @@ function getSupabase() {
   }
   return _supabase;
 }
-
-/* ─── AUTH ──────────────────────────────────────────────── */
 
 async function signUp(email, password, fullName) {
   const sb = getSupabase();
@@ -99,8 +91,6 @@ async function getSession() {
   return session;
 }
 
-/* ─── PRODUCTS ─────────────────────────────────────────── */
-
 async function fetchProducts({ category, search, sort, limit = 50, offset = 0 } = {}) {
   const sb = getSupabase();
   let query = sb.from('products').select('*', { count: 'exact' });
@@ -167,8 +157,6 @@ async function searchProducts(query) {
   return data || [];
 }
 
-/* ─── ADMIN: Product Management ────────────────────────── */
-
 async function adminInsertProduct(product) {
   const sb = getSupabase();
   const { data, error } = await sb.from('products').insert(product).select().single();
@@ -198,8 +186,6 @@ async function adminUploadImage(file, folder = 'products') {
   return urlData.publicUrl;
 }
 
-/* ─── ADMIN: Check if current user is admin ────────────── */
-
 async function isAdmin() {
   const sb = getSupabase();
   const user = await getUser();
@@ -207,8 +193,6 @@ async function isAdmin() {
   const { data } = await sb.from('admin_users').select('id').eq('email', user.email).single();
   return !!data;
 }
-
-/* ─── ADMIN: Orders ────────────────────────────────────── */
 
 async function adminFetchOrders({ status, limit = 50, offset = 0 } = {}) {
   const sb = getSupabase();
@@ -226,8 +210,6 @@ async function adminUpdateOrderStatus(orderId, status) {
   if (error) throw error;
 }
 
-/* ─── CUSTOMER: Profile ────────────────────────────────── */
-
 async function getProfile() {
   const sb = getSupabase();
   const user = await getUser();
@@ -244,8 +226,6 @@ async function updateProfile(updates) {
   if (error) throw error;
   return data;
 }
-
-/* ─── CUSTOMER: Addresses ──────────────────────────────── */
 
 async function getAddresses() {
   const sb = getSupabase();
@@ -285,7 +265,7 @@ async function setDefaultAddress(id) {
   if (error) throw error;
 }
 
-/* ─── CUSTOMER: Orders ─────────────────────────────────── */
+
 
 async function getMyOrders() {
   const sb = getSupabase();
@@ -333,7 +313,7 @@ async function createOrder(orderData, items) {
   return order;
 }
 
-/* ─── STORE REVIEWS ────────────────────────────────────── */
+
 
 async function getStoreReviews() {
   const sb = getSupabase();
@@ -385,7 +365,7 @@ async function adminDeleteStoreReview(reviewId) {
   if (error) throw error;
 }
 
-/* ─── NEWSLETTER ────────────────────────────────────────── */
+
 
 async function subscribeNewsletter(email) {
   const sb = getSupabase();

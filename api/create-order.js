@@ -43,9 +43,8 @@ async function computeTotals(items, state) {
     if (!(qty > 0)) throw new Error('items_invalid');
     subtotal += parseFloat(prod.price) * qty;
   }
-  var freeDelivery = String(state || '').trim().toLowerCase() === 'tamil nadu';
-  var shipping_fee = freeDelivery ? 0 : 250;
-  var total = subtotal + shipping_fee;
+  var shipping_fee = 0;
+  var total = subtotal;
   return { subtotal: subtotal, shipping_fee: shipping_fee, total: total };
 }
 

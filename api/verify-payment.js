@@ -55,9 +55,8 @@ async function buildOrder(items, state) {
       total_price: price * qty
     });
   }
-  var freeDelivery = String(state || '').trim().toLowerCase() === 'tamil nadu';
-  var shipping_fee = freeDelivery ? 0 : 250;
-  return { subtotal: subtotal, shipping_fee: shipping_fee, total: subtotal + shipping_fee, lineItems: lineItems };
+  var shipping_fee = 0;
+  return { subtotal: subtotal, shipping_fee: shipping_fee, total: subtotal, lineItems: lineItems };
 }
 
 module.exports = async function handler(req, res) {

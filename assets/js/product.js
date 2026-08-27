@@ -103,10 +103,8 @@
       else elStkBadge.style.display = 'none';
     }
 
-    // Sold count (decorative realistic range)
     if (elSold) {
-      const base = parseInt(p.id, 36) % 40 || 12;
-      elSold.textContent = Math.max(8, base);
+      elSold.style.display = 'none';
     }
 
     // Description
