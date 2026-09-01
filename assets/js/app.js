@@ -1201,8 +1201,8 @@ function CookiePolicyPage() {
       /*#__PURE__*/React.createElement("li", { style: { marginBottom: '10px' } }, /*#__PURE__*/React.createElement("b", null, "kgs_tracking_id:"), " Your last order ID, used for the order tracking page. Stored in sessionStorage and cleared when you close the browser tab."),
       /*#__PURE__*/React.createElement("li", { style: { marginBottom: '10px' } }, /*#__PURE__*/React.createElement("b", null, "kgs_cookie_consent:"), " Stores whether you have accepted this cookie notice.")
     ),
-    /*#__PURE__*/React.createElement("h2", { style: { fontFamily: '"Crimson Pro",serif', fontSize: '24px', color: '#1A1A1A', marginTop: '32px', marginBottom: '16px' } }, "No Third-Party Tracking"),
-    /*#__PURE__*/React.createElement("p", { style: { marginBottom: '24px' } }, "We do not use Google Analytics, Facebook Pixel, or any advertising cookies. Your browsing behaviour on this site is not tracked or sold to any third party."),
+    /*#__PURE__*/React.createElement("h2", { style: { fontFamily: '"Crimson Pro",serif', fontSize: '24px', color: '#1A1A1A', marginTop: '32px', marginBottom: '16px' } }, "Analytics"),
+    /*#__PURE__*/React.createElement("p", { style: { marginBottom: '24px' } }, "We use Google Analytics to understand how visitors use our website (e.g. pages visited, time spent). This helps us improve your shopping experience. Google Analytics may set cookies on your device. No personally identifiable information is shared with Google Analytics. You can opt out at any time using the ", /*#__PURE__*/React.createElement("a", { href: "https://tools.google.com/dlpage/gaoptout", target: "_blank", rel: "noopener noreferrer", style: { color: '#B89657' } }, "Google Analytics Opt-out Browser Add-on"), "."),
     /*#__PURE__*/React.createElement("h2", { style: { fontFamily: '"Crimson Pro",serif', fontSize: '24px', color: '#1A1A1A', marginTop: '32px', marginBottom: '16px' } }, "How to Clear"),
     /*#__PURE__*/React.createElement("p", { style: { marginBottom: '24px' } }, "You can clear all stored data at any time via your browser settings (Clear Site Data). Note: this will empty your cart and wishlist.")
   );
