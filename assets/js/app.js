@@ -4918,7 +4918,14 @@ function CheckoutPage(_ref17) {
     readOnly: true,
     "aria-readonly": "true",
     title: "We deliver only within Tamil Nadu"
-  }))), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'block',
+      marginTop: 4,
+      fontSize: 11,
+      color: '#5E5B59'
+    }
+  }, "For other states, contact us through WhatsApp.")), /*#__PURE__*/React.createElement("div", {
     className: "form-field",
     style: {
       maxWidth: 200
