@@ -4925,7 +4925,7 @@ function CheckoutPage(_ref17) {
       fontSize: 11,
       color: '#5E5B59'
     }
-  }, "For other states, contact us through WhatsApp.")), /*#__PURE__*/React.createElement("div", {
+  }, "For other states, contact us through WhatsApp."))), /*#__PURE__*/React.createElement("div", {
     className: "form-field",
     style: {
       maxWidth: 200
