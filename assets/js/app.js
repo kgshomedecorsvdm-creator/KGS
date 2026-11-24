@@ -4131,7 +4131,7 @@ function ProductDetail(_ref15) {
 }, (!p.stock || p.stock <= 0) ? "block" : "shopping_bag"), (!p.stock || p.stock <= 0) ? "Sold Out" : ("Add to Cart \xB7 " + fmtPrice(lineTotal)))),
 /*#__PURE__*/React.createElement("button", {
   disabled: !p.stock || p.stock <= 0,
-  onClick: function onClick() { if (p.stock > 0) { _onAdd(p, qty); window._kgsSetRoute('checkout'); } },
+  onClick: function onClick() { if (p.stock > 0) { _onAdd(p, qty); window._kgsSetRoute('cart'); } },
   style: Object.assign({ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: '#14110C', color: '#EDE3D4', border: 'none', borderRadius: 14, fontSize: 13.5, fontWeight: 600, fontFamily: "'Jost',sans-serif", letterSpacing: '.10em', textTransform: 'uppercase', cursor: 'pointer', padding: '16px 24px', marginBottom: 12, boxShadow: '0 6px 24px -8px rgba(20,17,12,0.55)', transition: 'all 240ms cubic-bezier(0.25,1,0.5,1)' }, (!p.stock || p.stock <= 0) ? { opacity: 0.6, cursor: 'not-allowed' } : {})
 },
 /*#__PURE__*/React.createElement("span", {
