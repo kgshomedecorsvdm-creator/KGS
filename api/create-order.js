@@ -1,4 +1,5 @@
 var { rateLimit } = require('./_rate-limit');
+var security = require('./_checkout-security');
 
 var SUPABASE_URL = process.env.SUPABASE_URL || 'https://rgpkomngygapwjhnbgaf.supabase.co';
 var SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_UkDE7zfukrWeuSW2pZYjTQ_YpBFcs9P';
@@ -24,6 +25,7 @@ async function fetchProducts(ids) {
 // Recomputes the trusted subtotal/shipping/total from server-side prices.
 // Returns { subtotal, shipping_fee, total } or throws Error with a code.
 async function computeTotals(items, state) {
+  security.validateItems(items);
   if (!Array.isArray(items) || items.length === 0) throw new Error('items_empty');
   var ids = [];
   for (var i = 0; i < items.length; i++) {
@@ -39,11 +41,15 @@ async function computeTotals(items, state) {
     if (!prod || prod.is_active !== true) throw new Error('product_unavailable');
     var qty = Math.floor(item.qty);
     if (!(qty > 0)) throw new Error('items_invalid');
-    subtotal += parseFloat(prod.price) * qty;
+    var price = Number(prod.price);
+    if (!Number.isFinite(price) || price <= 0) throw new Error('product_unavailable');
+    subtotal += Math.round(price * 100) * qty;
   }
   var shipping_fee = 0;
-  var total = subtotal;
-  return { subtotal: subtotal, shipping_fee: shipping_fee, total: total };
+  var total = subtotal / 100;
+  return { subtotal: total, shipping_fee: shipping_fee, total: total,
+    lineItems: items.map(function(item) { var p = products[item.id]; var price = Math.round(Number(p.price) * 100) / 100;
+      return { product_id: p.id, product_name: p.name, product_image: p.image_url || '', quantity: item.qty, unit_price: price, total_price: Math.round(price * 100) * item.qty / 100 }; }) };
 }
 
 module.exports = async function handler(req, res) {
@@ -54,8 +60,10 @@ module.exports = async function handler(req, res) {
     var body = req.body || {};
     var items = body.items;
     var state = body.state;
-    var currency = body.currency || 'INR';
-    var receipt = body.receipt || ('kgs_' + Date.now());
+    var currency = 'INR';
+    var receipt = 'kgs_' + require('crypto').randomBytes(12).toString('hex');
+    var shipping = security.shipping(body.shipping);
+    var customerId = await security.customer(req);
 
     var KEY_ID = process.env.RAZORPAY1 || process.env.RAZORPAY_KEY_ID;
     var KEY_SECRET = process.env.RAZORPAY2 || process.env.RAZORPAY_KEY_SECRET;
@@ -71,7 +79,14 @@ module.exports = async function handler(req, res) {
     }
 
     var amountPaise = Math.round(totals.total * 100);
-    if (amountPaise < 100) return res.status(400).json({ error: 'Order total too low' });
+    if (!Number.isSafeInteger(amountPaise) || amountPaise < 100 || amountPaise > 100000000) return res.status(400).json({ error: 'Invalid order total' });
+    // Fail before taking payment when the atomic recording migration is missing.
+    var serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) throw new Error('Order recording not configured');
+    var ready = await fetch(SUPABASE_URL + '/rest/v1/rpc/checkout_security_ready', {
+      method: 'POST', headers: { apikey: serviceKey, Authorization: 'Bearer ' + serviceKey, 'Content-Type': 'application/json' }, body: '{}'
+    });
+    if (!ready.ok || await ready.json() !== true) throw new Error('Order recording not configured');
 
     var auth = Buffer.from(KEY_ID + ':' + KEY_SECRET).toString('base64');
     var response = await fetch('https://api.razorpay.com/v1/orders', {
@@ -84,7 +99,11 @@ module.exports = async function handler(req, res) {
       console.error('[KGS] Razorpay create order error:', data);
       return res.status(500).json({ error: (data.error && data.error.description) || 'Failed to create order' });
     }
+    if (!/^order_[a-zA-Z0-9]+$/.test(data.id) || data.amount !== amountPaise || data.currency !== currency) {
+      throw new Error('Invalid gateway order response');
+    }
     return res.json({
+      checkout_token: security.sign({ version: 1, expires: Date.now() + 24 * 60 * 60 * 1000, order_id: data.id, amount: amountPaise, currency: currency, customer_id: customerId, shipping: shipping, totals: totals }),
       order_id: data.id,
       amount: data.amount,
       currency: data.currency,
@@ -95,6 +114,6 @@ module.exports = async function handler(req, res) {
     });
   } catch (err) {
     console.error('[KGS] Create order exception:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(err.status || 500).json({ error: err.status ? err.message : 'Unable to start checkout' });
   }
 };

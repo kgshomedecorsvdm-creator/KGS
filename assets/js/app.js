@@ -4641,7 +4641,7 @@ function CheckoutPage(_ref17) {
       city: (_defaultAddr && _defaultAddr.city) || '',
       state: (_defaultAddr && _defaultAddr.state) || 'Tamil Nadu',
       pincode: (_defaultAddr && _defaultAddr.pincode) || '',
-      saveAddress: true
+      saveAddress: !!user
     }),
     _React$useState28 = _slicedToArray(_React$useState27, 2),
     form = _React$useState28[0],
@@ -4944,7 +4944,7 @@ function CheckoutPage(_ref17) {
       fontSize: 11,
       color: '#C0392B'
     }
-  }, errors.pincode)), /*#__PURE__*/React.createElement("div", {
+  }, errors.pincode)), user && /*#__PURE__*/React.createElement("div", {
     className: "form-group",
     style: { display: 'flex', alignItems: 'center', marginTop: '16px', gap: '8px' }
   }, /*#__PURE__*/React.createElement("input", {
@@ -6986,7 +6986,7 @@ function App() {
     // the same way the old client-side insert did, for data consistency).
     var shippingPayload = {
       name: formData.name,
-      phone: formData.phone,
+      phone: formData.phone.replace(/\s/g, ''),
       address: formData.address + ', ' + formData.city + ', Tamil Nadu - ' + formData.pincode,
       city: formData.city,
       state: 'Tamil Nadu',
@@ -6995,17 +6995,24 @@ function App() {
 
     var sb = getSB();
 
-    if (sb && currentUser) {
+    {
       setProcessing(true);
-      fetch('/api/create-order', {
+      // Authentication only associates an order with an account; guests need no token.
+      Promise.resolve(sb && currentUser ? sb.auth.getSession() : null).then(function(sessionResult) {
+      var session = sessionResult && sessionResult.data && sessionResult.data.session;
+      var headers = { 'Content-Type': 'application/json' };
+      if (session && session.access_token) headers.Authorization = 'Bearer ' + session.access_token;
+      return fetch('/api/create-order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({
           items: orderItems,
+          shipping: shippingPayload,
           state: shippingPayload.state,
           currency: 'INR',
           receipt: 'kgs_' + Date.now()
         })
+      });
       }).then(function(r) {
         return r.json().then(function(data) {
           return { ok: r.ok, data: data };
@@ -7044,9 +7051,7 @@ function App() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                items: orderItems,
-                shipping: shippingPayload,
-                customer_id: currentUser.id
+                checkout_token: data.checkout_token
               })
             }).then(function(r) {
               return r.json().then(function(data) {
@@ -7056,7 +7061,7 @@ function App() {
               var ok2 = _ref2.ok, data = _ref2.data;
               if (ok2 && data && data.success === true && data.order_number != null) {
                 // Auto-save address
-                if (currentUser && currentUser.user_metadata && formData.saveAddress !== false) {
+                if (sb && currentUser && currentUser.user_metadata && formData.saveAddress !== false) {
                   var existingAddresses = currentUser.user_metadata.addresses || [];
                   var isMatch = existingAddresses.some(function(a) {
                     return a.line1 === formData.address && a.city === formData.city && a.pincode === formData.pincode;
@@ -7127,14 +7132,6 @@ function App() {
         setProcessing(false);
         showToast('Unable to start payment right now. Please try again later or contact us on WhatsApp.', 'error', '#C97840');
       });
-    } else {
-      // No signed-in user (or Supabase unavailable): do NOT fake-confirm an
-      // order or clear the cart. Ask the user to log in so the order can be
-      // paid for and saved against their account.
-      setProcessing(false);
-      showToast('Please log in to place your order.', 'info');
-      setRoute('login');
-      window.scrollTo(0, 0);
     }
   };
   React.useEffect(function () {
@@ -7317,17 +7314,12 @@ function App() {
       }
     });
   } else if (route === 'checkout') {
-    if (!currentUser) {
-      setRoute('login');
-      body = /*#__PURE__*/React.createElement("div", { style: { minHeight: '60vh' } });
-    } else {
       body = /*#__PURE__*/React.createElement(CheckoutPage, {
         cart: cart,
         user: currentUser,
         onPlaceOrder: handlePlaceOrder,
         onBack: function onBack() { return setRoute('cart'); }
       });
-    }
   } else if (route === 'order-confirmation') {
     body = /*#__PURE__*/React.createElement(OrderConfirmationPage, {
       cart: lastCart,

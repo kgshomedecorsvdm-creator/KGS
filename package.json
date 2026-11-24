@@ -4,7 +4,7 @@
     "description": "",
     "main": ".env.local.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "node scripts/verify-guest-checkout.cjs && node scripts/verify-checkout-security.cjs && node scripts/verify-checkout-database.cjs"
     },
     "repository": {
         "type": "git",
@@ -18,10 +18,11 @@
     },
     "homepage": "https://github.com/thefreelancers2026-arch/KGS-HOME-DECOR#readme",
     "devDependencies": {
+        "@electric-sql/pglite": "^0.6.0",
         "@supabase/supabase-js": "^2.105.4",
         "node-fetch": "^3.3.2",
         "playwright": "^1.59.1",
-        "sharp": "^0.34.5",
+        "sharp": "^0.35.5",
         "tailwindcss": "^3.4.19"
     },
     "dependencies": {
@@ -29,7 +30,7 @@
         "@babel/core": "^7.29.0",
         "@babel/preset-env": "^7.29.5",
         "@babel/preset-react": "^7.28.5",
-        "puppeteer": "^24.42.0"
+        "puppeteer": "^25.18.1"
     },
     "type": "module"
 }

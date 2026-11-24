@@ -1,4 +1,4 @@
-var rateLimitStore = {};
+var rateLimitStore = Object.create(null);
 
 function rateLimit(ip, limit, windowMs) {
   var now = Date.now();
@@ -18,6 +18,6 @@ setInterval(function () {
   for (var key in rateLimitStore) {
     if (rateLimitStore[key].reset < now) delete rateLimitStore[key];
   }
-}, 300000);
+}, 300000).unref();
 
 module.exports = { rateLimit: rateLimit };

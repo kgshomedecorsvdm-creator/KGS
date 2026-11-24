@@ -1,4 +1,4 @@
-var CACHE_NAME = 'kgs-v18';
+var CACHE_NAME = 'kgs-v19';
 var STATIC_ASSETS = [
   '/',
   '/assets/css/styles.css',
